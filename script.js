@@ -1,5 +1,6 @@
 import * as THREE from './node_modules/three/build/three.module.js'
 import { OBJLoader } from './node_modules/three/examples/jsm/loaders/OBJLoader.js'
+import { OrbitControls } from './node_modules/three/examples/jsm/controls/OrbitControls.js'
 
 const canvas = document.getElementById('canvas')
 
@@ -16,8 +17,8 @@ const scene = new THREE.Scene()
 
 
 
-const light = new THREE.AmbientLight()
-light.position.set(0, 0, 900)
+const light = new THREE.DirectionalLight()
+light.position.set(0, 0, 100000)
 scene.add(light)
 const camera = new THREE.PerspectiveCamera(1, width / height, 1, 500000)
 camera.position.z = 1000
@@ -29,66 +30,82 @@ loader.load('./obj/hot_air_balloon.obj',
     function (object) {
         object.children[0].material = new THREE.MeshNormalMaterial()
         object.scale.set(0.005, 0.005, 0.005)
+        object.position.z = 5
         scene.add(object)
         airHotBallon = object
     }
 )
 
+const controls = new OrbitControls(camera, renderer.domElement)
 
-// let clouds = new THREE.Object3D()
-// loader.load('./obj/cloud.obj',
-//     function(object) {
-//         object.children[0].position.x = 0
-//         object.children[0].position.y = 0
-//         object.children[0].position.z = 0
-//         scene.add(object.children[0])
-//     }
-// )
+let clouds_1 = new THREE.Group()
+let clouds_2 = new THREE.Group()
+let clouds_3 = new THREE.Group()
+let clouds_4 = new THREE.Group()
 
-
-const createSphere = (x, y, z) => {
-    const sphereGeometry = new THREE.SphereGeometry(1.3, 15, 10)
-    const sphereMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff} ) 
-    const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial)
-    sphereMesh.position.set(x, y, z)
-    return (sphereMesh)
-}
-
-
-const createCloud = () => {
-    let cloudSize = Math.random() * 7
-    let cloudGroup = new THREE.Group()
-
-    for (let i = 0; i < Math.floor(cloudSize) + 2; i++) {
-        cloudGroup.add(createSphere(Math.random()* 2, Math.random() * 2, Math.random() * 2))
+const addCloudsPosition  = (object, cloudsGroupNumber) => {
+    for (let i = 0; i <= 10; i += 2) {
+        let currentCloud = object.clone()
+        let scale = Math.random() * 0.016
+        currentCloud.scale.set(scale, scale, scale)
+        currentCloud.position.set(i * 10 - 90, Math.random() * i * 2 - 10, Math.random() * 10 - 30)
+        cloudsGroupNumber.add(currentCloud)
     }
-    return cloudGroup
 }
+loader.load('./obj/cloud_1.obj',
+    function (object) {
+       addCloudsPosition(object, clouds_1)
+    }
+)
 
-const clouds = new THREE.Group()
-for (let i = -60; i < 60; i+=3) {
-    let cloud = createCloud()
-    cloud.position.set(Math.random() * i , Math.random() * 30 - 10,Math.random() * -300)
-    clouds.add(cloud)
+loader.load('./obj/cloud_2.obj',
+    function(object) {
+       addCloudsPosition(object, clouds_2)
+    }
+)
 
-}
+loader.load('./obj/cloud_3.obj', 
+    function(object) {
+        addCloudsPosition(object, clouds_3)
+    }
+)
 
+loader.load('./obj/cloud_4.obj', 
+    function(object) {
+        addCloudsPosition(object, clouds_4)
+    }
+)
+
+
+let clouds = new THREE.Group()
+clouds.add(clouds_1, clouds_2, clouds_3, clouds_4)
 scene.add(clouds)
-
 let moveBalloon = 'up'
 
 const animate = () => {
 
+    clouds_1.position.x += 0.03
+    clouds_2.position.x += 0.01
+    clouds_3.position.x += 0.04
+    clouds_4.position.x += 0.032
+
+    controls.update()
     if (moveBalloon === 'up') {
         airHotBallon.position.y += 0.01
-        airHotBallon.position.y > -3? moveBalloon = 'down': ''
+        airHotBallon.position.y > -3 ? moveBalloon = 'down' : ''
     } else {
         airHotBallon.position.y -= 0.01
-        airHotBallon.position.y < -6? moveBalloon = 'up': ''
+        airHotBallon.position.y < -6 ? moveBalloon = 'up' : ''
     }
 
-    clouds.position.z += 1
-    clouds.position.x += 0.001
+    clouds.children.map(cloudArray => {
+        cloudArray.children.map(cloud => {
+            if (cloud.position.x <= -90) {
+                cloud.position.x = 0 
+            }
+        })
+    })
+
     airHotBallon.rotation.x = 0.3
     airHotBallon.rotation.y = 0.3
     renderer.render(scene, camera)
