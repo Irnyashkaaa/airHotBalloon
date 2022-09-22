@@ -43,11 +43,18 @@ let clouds_2 = new THREE.Group()
 let clouds_3 = new THREE.Group()
 let clouds_4 = new THREE.Group()
 
+
+let cloud_colors = [0xB4A7D6, 0xCFE2F3, 0xD5A6BD, 0xD9EAD3, 0xffffff]
 const addCloudsPosition  = (object, cloudsGroupNumber) => {
     for (let i = 0; i <= 10; i += 2) {
         let currentCloud = object.clone()
         let scale = Math.random() * 0.016
         currentCloud.scale.set(scale, scale, scale)
+        const color = Math.ceil(Math.random() * 4)
+        currentCloud.children[0].material.color.setHex(cloud_colors[color])
+
+
+
         currentCloud.position.set(i * 10 - 90, Math.random() * i * 2 - 10, Math.random() * 10 - 30)
         cloudsGroupNumber.add(currentCloud)
     }
@@ -106,6 +113,10 @@ const animate = () => {
         })
     })
 
+    clouds_4.position.x > 90? clouds_4.position.x = -40: ''
+    clouds_3.position.x > 90? clouds_3.position.x = -40: ''
+    clouds_2.position.x > 90? clouds_2.position.x = -40: ''
+    clouds_1.position.x > 90? clouds_1.position.x = -40: '' 
     airHotBallon.rotation.x = 0.3
     airHotBallon.rotation.y = 0.3
     renderer.render(scene, camera)
